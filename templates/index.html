@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Long Text Simplifier</title>
+  <link rel="stylesheet" href="../static/css/index.css" />
+  <script src="../static/js/index.js"></script>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="app-bar-inner">
+      <h1 class="app-bar-title">Long Text Simplifier</h1>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="translator-layout">
+      <!-- Input Panel -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Input</h2>
+          <button class="icon-btn" id="clearInputBtn" aria-label="Clear input">✕</button>
+        </div>
+        <div class="text-field" id="inputField">
+          <textarea id="inputText" class="text-field-input" rows="6"></textarea>
+          <label class="text-field-label" for="inputText">Enter text to simplify</label>
+        </div>
+      </section>
+
+      <!-- Output Panel -->
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Output</h2>
+          <button class="icon-btn" id="copyOutputBtn" aria-label="Copy output">⧉</button>
+        </div>
+        <div class="text-field" id="outputField">
+          <textarea id="outputText" class="text-field-input" rows="6" readonly></textarea>
+          <label class="text-field-label" for="outputText">Simplified text</label>
+        </div>
+      </section>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="simplifyBtn">Simplify</button>
+      <button class="btn btn-outlined" id="clearBtn">Clear</button>
+    </div>
+
+    <p class="model-status" id="modelStatus">Using: chatgpt-4o</p>
+  </main>
+
+</body>
+</html>
