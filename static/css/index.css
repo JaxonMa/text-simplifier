@@ -70,8 +70,8 @@ body {
 .main-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    padding: 24px 32px;
+    gap: 14px;
+    padding: 16px 32px 12px;
     flex: 1;
     min-height: 0;
 }
@@ -85,27 +85,36 @@ body {
     min-height: 0;
 }
 
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e5e5;
+}
+
 .panel-label {
-    padding: 12px 16px;
-    font-size: 13px;
+    padding: 10px 14px;
+    font-size: 12px;
     font-weight: 600;
     color: #666666;
-    border-bottom: 1px solid #e5e5e5;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .input-panel {
     flex: 1;
+    min-height: 250px;
 }
 
 .output-panel {
     flex: 1;
+    min-height: 250px;
 }
 
 /* ===== Text Area ===== */
 .text-area {
     flex: 1;
+    min-height: 220px;
     padding: 16px;
     border: none;
     outline: none;
@@ -148,27 +157,24 @@ body {
 /* ===== Action Bar ===== */
 .action-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    padding: 16px 32px;
+    padding: 8px 32px 12px;
     border-top: 1px solid #e5e5e5;
     background-color: #ffffff;
 }
 
 .actions-left {
-    flex: 1;
-}
-
-.actions-right {
     display: flex;
+    align-items: center;
     gap: 8px;
-    flex: 0 0 auto;
 }
 
 /* ===== Buttons ===== */
 .btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 16px;
     border: 1px solid #111111;
@@ -198,27 +204,36 @@ body {
 
 /* ===== Button Types ===== */
 .btn-primary {
-    padding: 10px 20px;
+    padding: 10px 22px;
 }
 
 .btn-secondary {
-    padding: 10px 12px;
-    font-size: 16px;
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
 }
 
-/* Icon-only buttons */
-.btn-secondary .btn-icon {
-    margin: 0;
-}
-
-.btn-secondary .btn-text {
-    display: none;
-}
-
-/* ===== Button Icon ===== */
 .btn-icon {
-    font-size: 16px;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    line-height: 1;
+}
+
+.icon-svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-button .btn-text {
+    display: none;
 }
 
 .btn-text {
@@ -247,14 +262,18 @@ body {
     }
 }
 
-.btn-success .checkmark {
+.checkmark {
     display: inline-block;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 700;
+    color: currentColor;
     animation: checkmarkPulse 0.3s ease-out;
 }
 
 .btn-success.icon-only .btn-icon,
 .btn-success:not(.icon-only) .btn-text {
-    opacity: 0.3;
+    opacity: 0.35;
     transition: opacity 0.15s ease-out;
 }
 

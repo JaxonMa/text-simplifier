@@ -1,8 +1,8 @@
 // ===== State Management =====
 const state = {
     config: {
-        model: 'gpt-4o-mini',
-        baseUrl: 'https://api.openai.com/v1',
+        baseurl: '',
+        model: '',
         apiKey: ''
     },
     isProcessing: false
@@ -38,15 +38,15 @@ async function loadConfig() {
 }
 
 function updateConfigDisplay() {
-    elements.modelDisplay.textContent = state.config.model || 'gpt-4o-mini';
+    elements.modelDisplay.textContent = state.config.model || 'Not set';
     elements.configModel.value = state.config.model;
-    elements.configBaseUrl.value = state.config.baseUrl;
+    elements.configBaseUrl.value = state.config.baseUrl || '';
     elements.configApiKey.value = state.config.apiKey;
 }
 
 function saveConfig() {
-    state.config.model = elements.configModel.value;
     state.config.baseUrl = elements.configBaseUrl.value;
+    state.config.model = elements.configModel.value;
     state.config.apiKey = elements.configApiKey.value;
 
     try {
@@ -160,59 +160,42 @@ function clearAll() {
 function showButtonSuccess(button, isTextButton = false) {
     if (!button) return;
 
-    const isIconOnly = !button.querySelector('.btn-text') || button.querySelector('.btn-text').style.display === 'none';
+    const isIconOnly = !button.querySelector('.btn-text');
+    const iconElement = button.querySelector('.btn-icon');
+    const originalIconMarkup = iconElement ? iconElement.innerHTML : null;
 
-    // Create checkmark element
     const checkmark = document.createElement('span');
     checkmark.className = 'checkmark';
     checkmark.textContent = '✓';
 
-    // Add success class
     button.classList.add('btn-success');
     if (isIconOnly) {
         button.classList.add('icon-only');
     }
 
-    // Insert checkmark
     if (isTextButton || !isIconOnly) {
-        // For text buttons, insert before text
         const textElement = button.querySelector('.btn-text');
         if (textElement) {
             button.insertBefore(checkmark, textElement);
-        } else {
-            button.prepend(checkmark);
+        } else if (iconElement) {
+            iconElement.innerHTML = '';
+            iconElement.appendChild(checkmark);
         }
-    } else {
-        // For icon-only buttons, replace icon
-        const iconElement = button.querySelector('.btn-icon');
-        if (iconElement) {
-            const originalIcon = iconElement.textContent;
-            iconElement.textContent = '✓';
-            iconElement.style.opacity = '1';
-        }
+    } else if (iconElement) {
+        iconElement.innerHTML = '';
+        iconElement.appendChild(checkmark);
     }
 
-    // Revert after 1.2 seconds
     setTimeout(() => {
         button.classList.remove('btn-success', 'icon-only');
 
-        // Remove checkmark if it was added as element
         const checkmarkEl = button.querySelector('.checkmark');
-        if (checkmarkEl && !isIconOnly) {
+        if (checkmarkEl) {
             checkmarkEl.remove();
         }
 
-        // Restore original icon
-        const iconElement = button.querySelector('.btn-icon');
-        if (isIconOnly && iconElement) {
-            if (button.id === 'copyBtn') {
-                iconElement.textContent = '📋';
-            } else if (button.id === 'clearBtn') {
-                iconElement.textContent = '🗑';
-            } else if (button.id === 'simplifyBtn') {
-                iconElement.textContent = '⚡';
-            }
-            iconElement.style.opacity = '1';
+        if (iconElement && originalIconMarkup) {
+            iconElement.innerHTML = originalIconMarkup;
         }
     }, 1200);
 }

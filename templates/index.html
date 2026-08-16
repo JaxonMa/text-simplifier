@@ -25,7 +25,16 @@
         <div class="main-content">
             <!-- Left Panel: Input -->
             <div class="panel input-panel">
-                <div class="panel-label">Original Text</div>
+                <div class="panel-header">
+                    <div class="panel-label">Original Text</div>
+                    <button id="clearBtn" class="btn btn-secondary icon-button" type="button" title="Clear all text" aria-label="Clear text">
+                        <span class="btn-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                                <path d="M4 7h16M9 7V4h6v3M7 7l1 12h8l1-12" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
                 <textarea 
                     id="inputText" 
                     class="text-area" 
@@ -35,7 +44,17 @@
 
             <!-- Right Panel: Output -->
             <div class="panel output-panel">
-                <div class="panel-label">Simplified Result</div>
+                <div class="panel-header">
+                    <div class="panel-label">Simplified Result</div>
+                    <button id="copyBtn" class="btn btn-secondary icon-button" type="button" title="Copy simplified text to clipboard" aria-label="Copy simplified text">
+                        <span class="btn-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                                <rect x="9" y="9" width="11" height="11" rx="1.5" />
+                                <path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
                 <div id="outputText" class="output-display" data-empty="true">
                     <span class="placeholder-text">Your simplified text will appear here</span>
                 </div>
@@ -45,17 +64,8 @@
         <!-- Action Bar -->
         <div class="action-bar">
             <div class="actions-left">
-                <button id="simplifyBtn" class="btn btn-primary">
-                    <span class="btn-icon">⚡</span>
+                <button id="simplifyBtn" class="btn btn-primary" type="button">
                     <span class="btn-text">Simplify</span>
-                </button>
-            </div>
-            <div class="actions-right">
-                <button id="copyBtn" class="btn btn-secondary" title="Copy simplified text to clipboard">
-                    <span class="btn-icon">📋</span>
-                </button>
-                <button id="clearBtn" class="btn btn-secondary" title="Clear all text">
-                    <span class="btn-icon">🗑</span>
                 </button>
             </div>
         </div>
@@ -65,21 +75,21 @@
             <div class="config-title">Model Configuration</div>
             <div class="config-grid">
                 <div class="config-item">
-                    <label for="configModel">Model</label>
-                    <input 
-                        type="text" 
-                        id="configModel" 
-                        class="config-input" 
-                        placeholder="e.g., gpt-4o-mini"
-                    >
-                </div>
-                <div class="config-item">
                     <label for="configBaseUrl">Base URL</label>
                     <input 
                         type="text" 
                         id="configBaseUrl" 
                         class="config-input" 
                         placeholder="e.g., https://api.openai.com/v1"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configModel">Model</label>
+                    <input 
+                        type="text" 
+                        id="configModel" 
+                        class="config-input" 
+                        placeholder="e.g., gpt-4o-mini"
                     >
                 </div>
                 <div class="config-item">
