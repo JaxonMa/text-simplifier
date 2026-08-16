@@ -43,6 +43,9 @@ body {
 
 .header-right {
     flex: 0 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .model-badge {
@@ -53,6 +56,55 @@ body {
     background-color: #f5f5f5;
     border: 1px solid #e5e5e5;
     font-size: 13px;
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.model-badge:hover {
+    background-color: #ececec;
+}
+
+.badge-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-out;
+}
+
+.model-badge.open .badge-arrow {
+    transform: rotate(180deg);
+}
+
+.model-bubble {
+    position: absolute;
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #111111;
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+    z-index: 10;
+}
+
+.model-bubble::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-left-color: #111111;
+}
+
+.model-bubble.visible {
+    opacity: 1;
 }
 
 .model-label {
@@ -110,18 +162,18 @@ body {
 
 .input-panel {
     flex: 1;
-    min-height: 250px;
+    min-height: 0;
 }
 
 .output-panel {
     flex: 1;
-    min-height: 250px;
+    min-height: 0;
 }
 
 /* ===== Text Area ===== */
 .text-area {
     flex: 1;
-    min-height: 220px;
+    min-height: 0;
     padding: 16px;
     border: none;
     outline: none;
@@ -310,6 +362,12 @@ body {
     gap: 12px;
 }
 
+.config-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
 .config-item {
     display: flex;
     flex-direction: column;
@@ -347,6 +405,7 @@ body {
 @media (max-width: 1024px) {
     .main-content {
         grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
         gap: 12px;
         padding: 16px;
     }
@@ -365,6 +424,20 @@ body {
     .model-badge {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .model-bubble {
+        right: auto;
+        left: 0;
+        top: calc(100% + 6px);
+        transform: none;
+    }
+
+    .model-bubble::after {
+        left: 12px;
+        top: -12px;
+        border: 6px solid transparent;
+        border-bottom-color: #111111;
     }
 
     .action-bar {

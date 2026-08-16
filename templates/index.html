@@ -14,15 +14,21 @@
                 <h1 class="app-title">Text Simplifier</h1>
             </div>
             <div class="header-right">
-                <span class="model-badge">
+                <div id="modelBubble" class="model-bubble" role="status" aria-live="polite"></div>
+                <button id="modelBadgeBtn" class="model-badge" type="button" aria-expanded="false" aria-controls="configPanel">
                     <span class="model-label">Model:</span>
                     <span class="model-value" id="modelDisplay">Loading...</span>
-                </span>
+                    <span class="badge-arrow" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="icon-svg">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </span>
+                </button>
             </div>
         </header>
 
         <!-- Model Configuration Panel -->
-        <div class="config-panel">
+        <div class="config-panel" id="configPanel" hidden>
             <div class="config-title">Model Configuration</div>
             <div class="config-grid">
                 <div class="config-item">
@@ -52,6 +58,11 @@
                         placeholder="Your API key"
                     >
                 </div>
+            </div>
+            <div class="config-actions">
+                <button id="confirmBtn" class="btn btn-primary" type="button">
+                    <span class="btn-text">Confirm</span>
+                </button>
             </div>
         </div>
 

@@ -1,7 +1,7 @@
 // ===== State Management =====
 const state = {
     config: {
-        baseurl: '',
+        baseUrl: '',
         model: '',
         apiKey: ''
     },
@@ -13,6 +13,10 @@ const elements = {
     inputText: document.getElementById('inputText'),
     outputText: document.getElementById('outputText'),
     modelDisplay: document.getElementById('modelDisplay'),
+    modelBadgeBtn: document.getElementById('modelBadgeBtn'),
+    modelBubble: document.getElementById('modelBubble'),
+    configPanel: document.getElementById('configPanel'),
+    confirmBtn: document.getElementById('confirmBtn'),
     simplifyBtn: document.getElementById('simplifyBtn'),
     copyBtn: document.getElementById('copyBtn'),
     clearBtn: document.getElementById('clearBtn'),
@@ -22,6 +26,8 @@ const elements = {
 };
 
 // ===== Configuration Management =====
+let bubbleTimer;
+
 async function loadConfig() {
     try {
         // Try to load from localStorage first
@@ -34,34 +40,99 @@ async function loadConfig() {
         console.warn('Failed to load config from localStorage:', e);
     }
 
-    updateConfigDisplay();
+    syncConfigInputs();
+    updateModelBadge();
 }
 
-function updateConfigDisplay() {
-    elements.modelDisplay.textContent = state.config.model || 'Not set';
+function syncConfigInputs() {
     elements.configModel.value = state.config.model;
-    elements.configBaseUrl.value = state.config.baseUrl || '';
+    elements.configBaseUrl.value = state.config.baseUrl;
     elements.configApiKey.value = state.config.apiKey;
 }
 
+function updateModelBadge() {
+    elements.modelDisplay.textContent = state.config.model || 'Not set';
+}
+
+function readConfigInputs() {
+    return {
+        baseUrl: elements.configBaseUrl.value,
+        model: elements.configModel.value,
+        apiKey: elements.configApiKey.value
+    };
+}
+
+function isConfigDirty() {
+    const inputs = readConfigInputs();
+    return inputs.baseUrl !== state.config.baseUrl ||
+        inputs.model !== state.config.model ||
+        inputs.apiKey !== state.config.apiKey;
+}
+
 function saveConfig() {
-    state.config.baseUrl = elements.configBaseUrl.value;
-    state.config.model = elements.configModel.value;
-    state.config.apiKey = elements.configApiKey.value;
+    state.config = readConfigInputs();
 
     try {
         localStorage.setItem('simplifierConfig', JSON.stringify(state.config));
-        updateConfigDisplay();
-        showButtonSuccess(elements.configModel.parentElement.querySelector('button') || null);
     } catch (e) {
         console.error('Failed to save config:', e);
     }
+
+    updateModelBadge();
 }
 
-// Watch for config changes and auto-save
-elements.configModel.addEventListener('change', saveConfig);
-elements.configBaseUrl.addEventListener('change', saveConfig);
-elements.configApiKey.addEventListener('change', saveConfig);
+function discardConfigChanges() {
+    syncConfigInputs();
+}
+
+function openModelMenu() {
+    elements.configPanel.hidden = false;
+    elements.modelBadgeBtn.classList.add('open');
+    elements.modelBadgeBtn.setAttribute('aria-expanded', 'true');
+}
+
+function closeModelMenu() {
+    elements.configPanel.hidden = true;
+    elements.modelBadgeBtn.classList.remove('open');
+    elements.modelBadgeBtn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleModelMenu() {
+    if (!elements.configPanel.hidden) {
+        if (isConfigDirty()) {
+            if (confirm('Save changes to model configuration?')) {
+                saveConfig();
+                closeModelMenu();
+                showBubble('Changes saved');
+            } else {
+                discardConfigChanges();
+                closeModelMenu();
+                showBubble('Changes discarded');
+            }
+        } else {
+            closeModelMenu();
+        }
+    } else {
+        openModelMenu();
+    }
+}
+
+function confirmChanges() {
+    if (isConfigDirty()) {
+        saveConfig();
+        showBubble('Changes saved');
+    }
+    closeModelMenu();
+}
+
+function showBubble(message) {
+    clearTimeout(bubbleTimer);
+    elements.modelBubble.textContent = message;
+    elements.modelBubble.classList.add('visible');
+    bubbleTimer = setTimeout(() => {
+        elements.modelBubble.classList.remove('visible');
+    }, 2500);
+}
 
 // ===== Simplification Logic =====
 async function simplifyText() {
@@ -204,6 +275,8 @@ function showButtonSuccess(button, isTextButton = false) {
 elements.simplifyBtn.addEventListener('click', simplifyText);
 elements.copyBtn.addEventListener('click', copyToClipboard);
 elements.clearBtn.addEventListener('click', clearAll);
+elements.modelBadgeBtn.addEventListener('click', toggleModelMenu);
+elements.confirmBtn.addEventListener('click', confirmChanges);
 
 // Allow simplify on Ctrl+Enter
 document.addEventListener('keydown', (e) => {
