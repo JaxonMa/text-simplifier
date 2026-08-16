@@ -3,8 +3,7 @@ const state = {
     config: {
         model: 'gpt-4o-mini',
         baseUrl: 'https://api.openai.com/v1',
-        apiKey: '',
-        loop: true
+        apiKey: ''
     },
     isProcessing: false
 };
@@ -19,8 +18,7 @@ const elements = {
     clearBtn: document.getElementById('clearBtn'),
     configModel: document.getElementById('configModel'),
     configBaseUrl: document.getElementById('configBaseUrl'),
-    configApiKey: document.getElementById('configApiKey'),
-    configLoop: document.getElementById('configLoop')
+    configApiKey: document.getElementById('configApiKey')
 };
 
 // ===== Configuration Management =====
@@ -44,14 +42,12 @@ function updateConfigDisplay() {
     elements.configModel.value = state.config.model;
     elements.configBaseUrl.value = state.config.baseUrl;
     elements.configApiKey.value = state.config.apiKey;
-    elements.configLoop.checked = state.config.loop;
 }
 
 function saveConfig() {
     state.config.model = elements.configModel.value;
     state.config.baseUrl = elements.configBaseUrl.value;
     state.config.apiKey = elements.configApiKey.value;
-    state.config.loop = elements.configLoop.checked;
 
     try {
         localStorage.setItem('simplifierConfig', JSON.stringify(state.config));
@@ -66,7 +62,6 @@ function saveConfig() {
 elements.configModel.addEventListener('change', saveConfig);
 elements.configBaseUrl.addEventListener('change', saveConfig);
 elements.configApiKey.addEventListener('change', saveConfig);
-elements.configLoop.addEventListener('change', saveConfig);
 
 // ===== Simplification Logic =====
 async function simplifyText() {

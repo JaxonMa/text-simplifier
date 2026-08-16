@@ -311,19 +311,7 @@ body {
     color: #999999;
 }
 
-.config-checkbox {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
 
-/* Checkbox label styling */
-.config-item label:has(.config-checkbox) {
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    font-weight: 400;
-}
 
 /* ===== Responsive Design ===== */
 @media (max-width: 1024px) {
