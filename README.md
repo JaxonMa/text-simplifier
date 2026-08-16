@@ -1,4 +1,4 @@
-# Long Text Simplifier
+# Text Simplifier
 
 A simple Python app for simplifying long text using an AI completion API.
 
