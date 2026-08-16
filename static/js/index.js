@@ -1,134 +1,269 @@
-// ---------- DOM Elements ----------
-const inputField = document.getElementById('inputField');
-const outputField = document.getElementById('outputField');
-const inputText = document.getElementById('inputText');
-const outputText = document.getElementById('outputText');
-const simplifyBtn = document.getElementById('simplifyBtn');
-const clearBtn = document.getElementById('clearBtn');
-const clearInputBtn = document.getElementById('clearInputBtn');
-const copyOutputBtn = document.getElementById('copyOutputBtn');
-const modelStatus = document.getElementById('modelStatus');
+// ===== State Management =====
+const state = {
+    config: {
+        model: 'gpt-4o-mini',
+        baseUrl: 'https://api.openai.com/v1',
+        apiKey: '',
+        loop: true
+    },
+    isProcessing: false
+};
 
-// ---------- Helper: Update floating label state ----------
-function updateFieldState(field) {
-  const wrapper = field.closest('.text-field');
-  if (field.value.length > 0 || document.activeElement === field) {
-    wrapper.classList.add('active');
-  } else {
-    wrapper.classList.remove('active');
-  }
+// ===== DOM Elements =====
+const elements = {
+    inputText: document.getElementById('inputText'),
+    outputText: document.getElementById('outputText'),
+    modelDisplay: document.getElementById('modelDisplay'),
+    simplifyBtn: document.getElementById('simplifyBtn'),
+    copyBtn: document.getElementById('copyBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    configModel: document.getElementById('configModel'),
+    configBaseUrl: document.getElementById('configBaseUrl'),
+    configApiKey: document.getElementById('configApiKey'),
+    configLoop: document.getElementById('configLoop')
+};
+
+// ===== Configuration Management =====
+async function loadConfig() {
+    try {
+        // Try to load from localStorage first
+        const saved = localStorage.getItem('simplifierConfig');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            state.config = { ...state.config, ...parsed };
+        }
+    } catch (e) {
+        console.warn('Failed to load config from localStorage:', e);
+    }
+
+    updateConfigDisplay();
 }
 
-// Attach input/focus/blur events to both textareas
-[inputText, outputText].forEach(field => {
-  field.addEventListener('input', () => updateFieldState(field));
-  field.addEventListener('focus', () => updateFieldState(field));
-  field.addEventListener('blur', () => updateFieldState(field));
-});
-
-// ---------- Simple Text Simplification (Mock) ----------
-function simplifyText(text) {
-  if (!text.trim()) return '';
-
-  let result = text.trim().replace(/\s+/g, ' ');
-
-  const replacements = [
-    [/\bin order to\b/gi, 'to'],
-    [/\bdue to the fact that\b/gi, 'because'],
-    [/\bat this point in time\b/gi, 'now'],
-    [/\bfor the purpose of\b/gi, 'for'],
-    [/\bin the event that\b/gi, 'if'],
-    [/\bwith regard to\b/gi, 'about'],
-    [/\bwith respect to\b/gi, 'about'],
-    [/\bin the near future\b/gi, 'soon'],
-    [/\bhas the ability to\b/gi, 'can'],
-    [/\bis able to\b/gi, 'can'],
-    [/\butilize\b/gi, 'use'],
-    [/\butilise\b/gi, 'use'],
-    [/\bcommence\b/gi, 'start'],
-    [/\bterminate\b/gi, 'end'],
-    [/\bassist\b/gi, 'help'],
-    [/\battempt\b/gi, 'try'],
-    [/\brequire\b/gi, 'need'],
-    [/\bobtain\b/gi, 'get'],
-    [/\bprovide\b/gi, 'give'],
-    [/\brequest\b/gi, 'ask'],
-    [/\bresponse\b/gi, 'answer'],
-    [/\badditional\b/gi, 'more'],
-    [/\bnumerous\b/gi, 'many'],
-    [/\bindividual\b/gi, 'person'],
-    [/\bcurrently\b/gi, 'now'],
-    [/\bsubsequently\b/gi, 'later'],
-    [/\bprior to\b/gi, 'before'],
-    [/\bafterwards\b/gi, 'later'],
-  ];
-
-  replacements.forEach(([pattern, replacement]) => {
-    result = result.replace(pattern, replacement);
-  });
-
-  return result;
+function updateConfigDisplay() {
+    elements.modelDisplay.textContent = state.config.model || 'gpt-4o-mini';
+    elements.configModel.value = state.config.model;
+    elements.configBaseUrl.value = state.config.baseUrl;
+    elements.configApiKey.value = state.config.apiKey;
+    elements.configLoop.checked = state.config.loop;
 }
 
-// ---------- Simplify Button ----------
-simplifyBtn.addEventListener('click', () => {
-  const simplified = simplifyText(inputText.value);
-  outputText.value = simplified;
-  updateFieldState(outputText);
-});
+function saveConfig() {
+    state.config.model = elements.configModel.value;
+    state.config.baseUrl = elements.configBaseUrl.value;
+    state.config.apiKey = elements.configApiKey.value;
+    state.config.loop = elements.configLoop.checked;
 
-// ---------- Clear Button ----------
-clearBtn.addEventListener('click', () => {
-  inputText.value = '';
-  outputText.value = '';
-  updateFieldState(inputText);
-  updateFieldState(outputText);
-  inputText.focus();
-});
+    try {
+        localStorage.setItem('simplifierConfig', JSON.stringify(state.config));
+        updateConfigDisplay();
+        showButtonSuccess(elements.configModel.parentElement.querySelector('button') || null);
+    } catch (e) {
+        console.error('Failed to save config:', e);
+    }
+}
 
-// ---------- Clear Input Icon Button ----------
-clearInputBtn.addEventListener('click', () => {
-  inputText.value = '';
-  updateFieldState(inputText);
-  inputText.focus();
-});
+// Watch for config changes and auto-save
+elements.configModel.addEventListener('change', saveConfig);
+elements.configBaseUrl.addEventListener('change', saveConfig);
+elements.configApiKey.addEventListener('change', saveConfig);
+elements.configLoop.addEventListener('change', saveConfig);
 
-// ---------- Copy Output Button ----------
-copyOutputBtn.addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText(outputText.value);
-    // Temporarily change icon to indicate success
-    copyOutputBtn.textContent = '✓';
+// ===== Simplification Logic =====
+async function simplifyText() {
+    const text = elements.inputText.value.trim();
+
+    if (!text) {
+        alert('Please enter some text to simplify.');
+        return;
+    }
+
+    if (!state.config.apiKey) {
+        alert('Please configure your API key first.');
+        return;
+    }
+
+    state.isProcessing = true;
+    elements.simplifyBtn.disabled = true;
+
+    try {
+        // Send request to backend API
+        const response = await fetch('/api/simplify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: text,
+                model: state.config.model,
+                baseUrl: state.config.baseUrl,
+                apiKey: state.config.apiKey
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const simplifiedText = data.simplified || data.result || '';
+
+        // Display result
+        displayResult(simplifiedText);
+
+        // Show success animation
+        showButtonSuccess(elements.simplifyBtn, true);
+    } catch (error) {
+        console.error('Error during simplification:', error);
+        alert(`Error: ${error.message}`);
+        displayResult(`Error: ${error.message}`);
+    } finally {
+        state.isProcessing = false;
+        elements.simplifyBtn.disabled = false;
+    }
+}
+
+function displayResult(text) {
+    if (text) {
+        elements.outputText.textContent = text;
+        elements.outputText.setAttribute('data-empty', 'false');
+        elements.copyBtn.disabled = false;
+    } else {
+        elements.outputText.innerHTML = '<span class="placeholder-text">Your simplified text will appear here</span>';
+        elements.outputText.setAttribute('data-empty', 'true');
+        elements.copyBtn.disabled = true;
+    }
+}
+
+// ===== Button Actions =====
+function copyToClipboard() {
+    const text = elements.outputText.textContent;
+
+    if (!text || elements.outputText.getAttribute('data-empty') === 'true') {
+        return;
+    }
+
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            showButtonSuccess(elements.copyBtn, false);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Failed to copy to clipboard');
+        });
+}
+
+function clearAll() {
+    if (confirm('Clear all text? This action cannot be undone.')) {
+        elements.inputText.value = '';
+        displayResult('');
+        elements.inputText.focus();
+        showButtonSuccess(elements.clearBtn, false);
+    }
+}
+
+// ===== Success Animation =====
+function showButtonSuccess(button, isTextButton = false) {
+    if (!button) return;
+
+    const isIconOnly = !button.querySelector('.btn-text') || button.querySelector('.btn-text').style.display === 'none';
+
+    // Create checkmark element
+    const checkmark = document.createElement('span');
+    checkmark.className = 'checkmark';
+    checkmark.textContent = '✓';
+
+    // Add success class
+    button.classList.add('btn-success');
+    if (isIconOnly) {
+        button.classList.add('icon-only');
+    }
+
+    // Insert checkmark
+    if (isTextButton || !isIconOnly) {
+        // For text buttons, insert before text
+        const textElement = button.querySelector('.btn-text');
+        if (textElement) {
+            button.insertBefore(checkmark, textElement);
+        } else {
+            button.prepend(checkmark);
+        }
+    } else {
+        // For icon-only buttons, replace icon
+        const iconElement = button.querySelector('.btn-icon');
+        if (iconElement) {
+            const originalIcon = iconElement.textContent;
+            iconElement.textContent = '✓';
+            iconElement.style.opacity = '1';
+        }
+    }
+
+    // Revert after 1.2 seconds
     setTimeout(() => {
-      copyOutputBtn.textContent = '⧉';
-    }, 1500);
-  } catch (err) {
-    alert('Failed to copy text.');
-  }
+        button.classList.remove('btn-success', 'icon-only');
+
+        // Remove checkmark if it was added as element
+        const checkmarkEl = button.querySelector('.checkmark');
+        if (checkmarkEl && !isIconOnly) {
+            checkmarkEl.remove();
+        }
+
+        // Restore original icon
+        const iconElement = button.querySelector('.btn-icon');
+        if (isIconOnly && iconElement) {
+            if (button.id === 'copyBtn') {
+                iconElement.textContent = '📋';
+            } else if (button.id === 'clearBtn') {
+                iconElement.textContent = '🗑';
+            } else if (button.id === 'simplifyBtn') {
+                iconElement.textContent = '⚡';
+            }
+            iconElement.style.opacity = '1';
+        }
+    }, 1200);
+}
+
+// ===== Event Listeners =====
+elements.simplifyBtn.addEventListener('click', simplifyText);
+elements.copyBtn.addEventListener('click', copyToClipboard);
+elements.clearBtn.addEventListener('click', clearAll);
+
+// Allow simplify on Ctrl+Enter
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (elements.inputText === document.activeElement) {
+            simplifyText();
+        }
+    }
 });
 
-// ---------- Ripple Effect ----------
-document.querySelectorAll('.btn').forEach(button => {
-  button.addEventListener('click', function (e) {
-    const ripple = document.createElement('span');
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
-
-    ripple.style.width = ripple.style.height = size + 'px';
-    ripple.style.left = x + 'px';
-    ripple.style.top = y + 'px';
-    ripple.classList.add('ripple');
-
-    button.appendChild(ripple);
-
-    setTimeout(() => {
-      ripple.remove();
-    }, 600);
-  });
+// ===== Initialization =====
+document.addEventListener('DOMContentLoaded', () => {
+    loadConfig();
+    elements.copyBtn.disabled = true; // Copy is disabled until there's output
+    elements.inputText.focus();
 });
 
-// ---------- Initial State ----------
-updateFieldState(inputText);
-updateFieldState(outputText);
+// ===== Auto-save input text to sessionStorage =====
+let inputTimeout;
+elements.inputText.addEventListener('input', () => {
+    clearTimeout(inputTimeout);
+    inputTimeout = setTimeout(() => {
+        try {
+            sessionStorage.setItem('inputText', elements.inputText.value);
+        } catch (e) {
+            console.warn('Failed to save input:', e);
+        }
+    }, 500);
+});
+
+// ===== Restore input text on page load =====
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const saved = sessionStorage.getItem('inputText');
+        if (saved) {
+            elements.inputText.value = saved;
+        }
+    } catch (e) {
+        console.warn('Failed to restore input:', e);
+    }
+});

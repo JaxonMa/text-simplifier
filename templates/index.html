@@ -1,53 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Long Text Simplifier</title>
-  <link rel="stylesheet" href="../static/css/index.css" />
-  <script src="../static/js/index.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Simplifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body>
-  <header class="app-bar">
-    <div class="app-bar-inner">
-      <h1 class="app-bar-title">Long Text Simplifier</h1>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="app-title">Text Simplifier</h1>
+            </div>
+            <div class="header-right">
+                <span class="model-badge">
+                    <span class="model-label">Model:</span>
+                    <span class="model-value" id="modelDisplay">Loading...</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel: Input -->
+            <div class="panel input-panel">
+                <div class="panel-label">Original Text</div>
+                <textarea 
+                    id="inputText" 
+                    class="text-area" 
+                    placeholder="Paste or enter your long text here..."
+                ></textarea>
+            </div>
+
+            <!-- Right Panel: Output -->
+            <div class="panel output-panel">
+                <div class="panel-label">Simplified Result</div>
+                <div id="outputText" class="output-display" data-empty="true">
+                    <span class="placeholder-text">Your simplified text will appear here</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="actions-left">
+                <button id="simplifyBtn" class="btn btn-primary">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Simplify</span>
+                </button>
+            </div>
+            <div class="actions-right">
+                <button id="copyBtn" class="btn btn-secondary" title="Copy simplified text to clipboard">
+                    <span class="btn-icon">📋</span>
+                </button>
+                <button id="clearBtn" class="btn btn-secondary" title="Clear all text">
+                    <span class="btn-icon">🗑</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Model Configuration Panel -->
+        <div class="config-panel">
+            <div class="config-title">Model Configuration</div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="configModel">Model</label>
+                    <input 
+                        type="text" 
+                        id="configModel" 
+                        class="config-input" 
+                        placeholder="e.g., gpt-4o-mini"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configBaseUrl">Base URL</label>
+                    <input 
+                        type="text" 
+                        id="configBaseUrl" 
+                        class="config-input" 
+                        placeholder="e.g., https://api.openai.com/v1"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configApiKey">API Key</label>
+                    <input 
+                        type="password" 
+                        id="configApiKey" 
+                        class="config-input" 
+                        placeholder="Your API key"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configLoop">
+                        <input 
+                            type="checkbox" 
+                            id="configLoop"
+                            class="config-checkbox"
+                        >
+                        <span>Enable Loop Mode</span>
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
-  </header>
 
-  <main class="container">
-    <div class="translator-layout">
-      <!-- Input Panel -->
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Input</h2>
-          <button class="icon-btn" id="clearInputBtn" aria-label="Clear input">✕</button>
-        </div>
-        <div class="text-field" id="inputField">
-          <textarea id="inputText" class="text-field-input" rows="6"></textarea>
-          <label class="text-field-label" for="inputText">Enter text to simplify</label>
-        </div>
-      </section>
-
-      <!-- Output Panel -->
-      <section class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Output</h2>
-          <button class="icon-btn" id="copyOutputBtn" aria-label="Copy output">⧉</button>
-        </div>
-        <div class="text-field" id="outputField">
-          <textarea id="outputText" class="text-field-input" rows="6" readonly></textarea>
-          <label class="text-field-label" for="outputText">Simplified text</label>
-        </div>
-      </section>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-primary" id="simplifyBtn">Simplify</button>
-      <button class="btn btn-outlined" id="clearBtn">Clear</button>
-    </div>
-
-    <p class="model-status" id="modelStatus">Using: chatgpt-4o</p>
-  </main>
-
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
