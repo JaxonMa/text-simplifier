@@ -21,6 +21,40 @@
             </div>
         </header>
 
+        <!-- Model Configuration Panel -->
+        <div class="config-panel">
+            <div class="config-title">Model Configuration</div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label for="configBaseUrl">Base URL</label>
+                    <input 
+                        type="text" 
+                        id="configBaseUrl" 
+                        class="config-input" 
+                        placeholder="e.g., https://api.openai.com/v1"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configModel">Model</label>
+                    <input 
+                        type="text" 
+                        id="configModel" 
+                        class="config-input" 
+                        placeholder="e.g., gpt-4o-mini"
+                    >
+                </div>
+                <div class="config-item">
+                    <label for="configApiKey">API Key</label>
+                    <input 
+                        type="password" 
+                        id="configApiKey" 
+                        class="config-input" 
+                        placeholder="Your API key"
+                    >
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="main-content">
             <!-- Left Panel: Input -->
@@ -67,40 +101,6 @@
                 <button id="simplifyBtn" class="btn btn-primary" type="button">
                     <span class="btn-text">Simplify</span>
                 </button>
-            </div>
-        </div>
-
-        <!-- Model Configuration Panel -->
-        <div class="config-panel">
-            <div class="config-title">Model Configuration</div>
-            <div class="config-grid">
-                <div class="config-item">
-                    <label for="configBaseUrl">Base URL</label>
-                    <input 
-                        type="text" 
-                        id="configBaseUrl" 
-                        class="config-input" 
-                        placeholder="e.g., https://api.openai.com/v1"
-                    >
-                </div>
-                <div class="config-item">
-                    <label for="configModel">Model</label>
-                    <input 
-                        type="text" 
-                        id="configModel" 
-                        class="config-input" 
-                        placeholder="e.g., gpt-4o-mini"
-                    >
-                </div>
-                <div class="config-item">
-                    <label for="configApiKey">API Key</label>
-                    <input 
-                        type="password" 
-                        id="configApiKey" 
-                        class="config-input" 
-                        placeholder="Your API key"
-                    >
-                </div>
             </div>
         </div>
     </div>

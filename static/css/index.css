@@ -101,6 +101,13 @@ body {
     letter-spacing: 0.5px;
 }
 
+.panel-header .btn {
+    align-self: stretch;
+    border: none;
+    border-left: 1px solid #e5e5e5;
+    flex: 0 0 auto;
+}
+
 .input-panel {
     flex: 1;
     min-height: 250px;
@@ -245,6 +252,10 @@ body {
     background-color: #ffffff;
     color: #111111;
     border-color: #111111;
+}
+
+.panel-header .btn.btn-success {
+    border-color: #e5e5e5;
 }
 
 @keyframes checkmarkPulse {
