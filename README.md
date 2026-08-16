@@ -1,67 +1,65 @@
 # Long Text Simplifier
 
-A simple Python app for simplifying long text using an AI completion API.
+A web application for simplifying long text using an AI completion API.
 
 ## Features
 
-- Paste or type long text into a resizable GUI
+- Enter text into a web-based interface
 - Simplify text using a configurable AI model
-- Copy the simplified result back to the clipboard
-- Includes both a GUI mode and a CLI mode
+- Copy the simplified result to the clipboard
+- Responsive and user-friendly design
 
 ## Setup
 
 1. Install dependencies:
 
 ```bash
-python -m pip install openai python-dotenv
+python -m pip install flask openai python-dotenv
 ```
 
-2. Create a `.env` file in the project root and set your API values:
+2. Create a `.env` file in the project root and set your API values like this:
 
 ```env
 BASE_URL=https://api.openai.com/v1
 API_KEY=your_api_key_here
 MODEL=gpt-4o-mini
-LOOP=False
 ```
-> Note: LOOP determines whether the commandline.py runs once or continuously.
 
 3. Optionally edit `prompt.md` to change the simplification instruction.
 
-## Run the GUI (Recommended)
-
+## Run GUI App
 ```bash
 python window.py
 ```
 
-The GUI includes:
-
-- `Paste` to load clipboard text
-- `Simplify` to send the text to the API
-- `Copy Simplified Text` to copy output back to the clipboard
-
-The output pane also includes setup instructions by default.
-
-## Run the CLI
+## Run the Web App
 
 ```bash
-python commandline.py
+python app.py
 ```
 
-Enter text at the prompt, and the app will print a simplified version.
+Then open your browser and navigate to `http://localhost:5000`.
 
-**Note**: The CLI has some issues unsolved. It may crash when processing long text. To have a better experience, please use the GUI version.
+The interface includes:
+
+- Input field to enter or paste text
+- `Simplify` button to send the text to the API
+- Output field displaying the simplified text
+- `Copy` button to copy the simplified result to the clipboard
+- `Clear` button to reset both input and output fields
 
 ## Project files
 
-- `commandline.py` — command-line entry point
-- `window.py` — Tkinter GUI window implementation
+- `app.py` — Flask web server
+- `window.py`- Desktop app built with tkinter
 - `simplifier.py` — API client and simplification logic
+- `templates/index.html` — web interface
+- `static/css/index.css` — styling
+- `static/js/index.js` — frontend functionality
 - `prompt.md` — prompt template used during simplification
 - `sample.txt` — example text for testing
 
 ## Notes
 
-- Make sure `BASE_URL` and `API_KEY` are set before running the app.
-- The GUI is designed with responsive vertical layout and clipboard actions.
+- Make sure `BASE_URL` and `API_KEY` are set before running the GUI app.
+- The model selection box is provided in the web app to set up the model in an easier way.
