@@ -9,7 +9,7 @@ MODEL_CONFIG = {"base_url": "", "model": "", "api_key": ""}
 CLIENT = None
 app = Flask(__name__)
 
-def generate_reply(status: str, type_: str, message: str, code: int) -> tuple[Response, int]:
+def generate_respond(status: str, type_: str, message: str, code: int) -> tuple[Response, int]:
     """Generate reply for requests
     
     Args:
@@ -38,15 +38,15 @@ def create_client():
     model_config = request.get_json()
 
     if MODEL_CONFIG.keys() != model_config.keys():
-        return generate_reply("error", "inform", "Request does not contain valid model configuration.", 400)
+        return generate_respond("error", "inform", "Request does not contain valid model configuration.", 400)
     elif list(MODEL_CONFIG.values()) == list(model_config.values()):
-        return generate_reply("success", "inform", "Client already created.", 200)
+        return generate_respond("success", "inform", "Client already created.", 200)
     else:
         MODEL_CONFIG.update(model_config)
 
     CLIENT = OpenAI(api_key=MODEL_CONFIG["api_key"], base_url=MODEL_CONFIG["base_url"])
     
-    return generate_reply("success", "inform", "Model configuration submitted successfully.", 200)
+    return generate_respond("success", "inform", "Model configuration submitted successfully.", 200)
 
 
 @app.post("/api/simplify-text/<string:original_text>")
@@ -60,12 +60,12 @@ def simplify_text(original_text: str) -> tuple[Response, int]:
         tuple[Response, int]: The simplified text.
     """
     if CLIENT is None:
-        return generate_reply("error", "inform", "Client not set.", 400)
+        return generate_respond("error", "inform", "Client is not set up.", 400)
 
     if simplified_text := simplify(CLIENT, MODEL_CONFIG["model"], original_text):
-        return generate_reply("success", "simplify", simplified_text, 200)
+        return generate_respond("success", "simplify", simplified_text, 200)
 
-    return generate_reply("error", "inform", "Unable to simplify text.", 500)
+    return generate_respond("error", "inform", "Unable to simplify text. Please check model configuration.", 500)
 
 
 if __name__ == "__main__":
