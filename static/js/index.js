@@ -86,19 +86,36 @@ function discardConfigChanges() {
 }
 
 function openModelMenu() {
-    elements.configPanel.hidden = false;
+    const panel = elements.configPanel;
+
+    panel.classList.add('open');
     elements.modelBadgeBtn.classList.add('open');
     elements.modelBadgeBtn.setAttribute('aria-expanded', 'true');
+
+    // Measure the natural height, then animate from 0 up to it
+    panel.style.height = 'auto';
+    const targetHeight = panel.offsetHeight;
+    panel.style.height = '0px';
+    void panel.offsetHeight; // force reflow so the transition starts from 0
+    panel.style.height = targetHeight + 'px';
 }
 
 function closeModelMenu() {
-    elements.configPanel.hidden = true;
+    const panel = elements.configPanel;
+
+    // Start collapsing from the current height (works mid-animation too)
+    panel.style.height = panel.getBoundingClientRect().height + 'px';
+    void panel.offsetHeight; // force reflow so the transition starts from here
+
+    panel.classList.remove('open');
     elements.modelBadgeBtn.classList.remove('open');
     elements.modelBadgeBtn.setAttribute('aria-expanded', 'false');
+
+    panel.style.height = '0px';
 }
 
 function toggleModelMenu() {
-    if (!elements.configPanel.hidden) {
+    if (elements.configPanel.classList.contains('open')) {
         if (isConfigDirty()) {
             if (confirm('Save changes to model configuration?')) {
                 saveConfig();
@@ -177,7 +194,7 @@ async function simplifyText() {
         displayResult(simplifiedText);
 
         // Show success animation
-        showButtonSuccess(elements.simplifyBtn, true);
+        showButtonSuccess(elements.simplifyBtn);
     } catch (error) {
         console.error('Error during simplification:', error);
         alert(`Error: ${error.message}`);
@@ -210,7 +227,7 @@ function copyToClipboard() {
 
     navigator.clipboard.writeText(text)
         .then(() => {
-            showButtonSuccess(elements.copyBtn, false);
+            showButtonSuccess(elements.copyBtn);
         })
         .catch(err => {
             console.error('Failed to copy:', err);
@@ -223,16 +240,16 @@ function clearAll() {
         elements.inputText.value = '';
         displayResult('');
         elements.inputText.focus();
-        showButtonSuccess(elements.clearBtn, false);
+        showButtonSuccess(elements.clearBtn);
     }
 }
 
 // ===== Success Animation =====
-function showButtonSuccess(button, isTextButton = false) {
+function showButtonSuccess(button) {
     if (!button) return;
 
-    const isIconOnly = !button.querySelector('.btn-text');
     const iconElement = button.querySelector('.btn-icon');
+    const textElement = button.querySelector('.btn-text');
     const originalIconMarkup = iconElement ? iconElement.innerHTML : null;
 
     const checkmark = document.createElement('span');
@@ -240,21 +257,14 @@ function showButtonSuccess(button, isTextButton = false) {
     checkmark.textContent = '✓';
 
     button.classList.add('btn-success');
-    if (isIconOnly) {
-        button.classList.add('icon-only');
-    }
 
-    if (isTextButton || !isIconOnly) {
-        const textElement = button.querySelector('.btn-text');
-        if (textElement) {
-            button.insertBefore(checkmark, textElement);
-        } else if (iconElement) {
-            iconElement.innerHTML = '';
-            iconElement.appendChild(checkmark);
-        }
-    } else if (iconElement) {
+    if (iconElement) {
+        // Icon buttons swap the icon for a checkmark; any accompanying text is left untouched.
+        button.classList.add('icon-only');
         iconElement.innerHTML = '';
         iconElement.appendChild(checkmark);
+    } else if (textElement) {
+        button.insertBefore(checkmark, textElement);
     }
 
     setTimeout(() => {
@@ -277,6 +287,15 @@ elements.copyBtn.addEventListener('click', copyToClipboard);
 elements.clearBtn.addEventListener('click', clearAll);
 elements.modelBadgeBtn.addEventListener('click', toggleModelMenu);
 elements.confirmBtn.addEventListener('click', confirmChanges);
+
+// Release the fixed height once the open animation finishes so the panel
+// stays responsive to window resizes
+elements.configPanel.addEventListener('transitionend', (e) => {
+    if (e.target !== elements.configPanel || e.propertyName !== 'height') return;
+    if (elements.configPanel.classList.contains('open')) {
+        elements.configPanel.style.height = 'auto';
+    }
+});
 
 // Allow simplify on Ctrl+Enter
 document.addEventListener('keydown', (e) => {
