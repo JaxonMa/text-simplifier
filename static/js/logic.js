@@ -31,6 +31,7 @@ const elements = {
     modelDisplay: document.getElementById('modelDisplay'),
     modelBadgeBtn: document.getElementById('modelBadgeBtn'),
     modelBubble: document.getElementById('modelBubble'),
+    themeToggle: document.getElementById('themeToggle'),
     configPanel: document.getElementById('configPanel'),
     confirmBtn: document.getElementById('confirmBtn'),
     simplifyBtn: document.getElementById('simplifyBtn'),
@@ -43,6 +44,84 @@ const elements = {
     inputWordCount: document.getElementById('inputWordCount'),
     outputWordCount: document.getElementById('outputWordCount')
 };
+
+// ===== Theme Management =====
+// The user's choice ("light" | "dark") is persisted in localStorage. On the
+// very first visit (no stored choice yet) the theme is picked from the clock
+// instead — dark from 6 PM until 6 AM, light otherwise. The effective theme
+// is applied to <html data-theme="...">; the dark styles live under the
+// [data-theme="dark"] selectors in index.css.
+// NOTE: keep the dark hours in sync with the inline theme script in
+// templates/index.html (it applies the theme before first paint).
+const THEME_MODE_KEY = 'themeMode';
+const DARK_START_HOUR = 18; // dark from 6 PM ...
+const DARK_END_HOUR = 6;    // ... until 6 AM
+
+const SUN_ICON = '<svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+function getThemeByTime() {
+    const hour = new Date().getHours();
+    return (hour >= DARK_START_HOUR || hour < DARK_END_HOUR) ? 'dark' : 'light';
+}
+
+function getStoredTheme() {
+    try {
+        const saved = localStorage.getItem(THEME_MODE_KEY);
+        if (saved === 'light' || saved === 'dark') return saved;
+    } catch (e) {
+        // localStorage unavailable — fall back to a time-based pick below
+    }
+    return null;
+}
+
+// First visit (or unavailable storage): pick by the clock. The pick is
+// persisted, so the automatic choice only ever happens once.
+function getInitialTheme() {
+    return getStoredTheme() || getThemeByTime();
+}
+
+function setStoredTheme(theme) {
+    try {
+        localStorage.setItem(THEME_MODE_KEY, theme);
+    } catch (e) {
+        // Non-persistent; the change still applies for this session.
+    }
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+}
+
+function updateThemeToggle(button, theme) {
+    if (!button) return;
+
+    const iconElement = button.querySelector('.btn-icon');
+    if (iconElement) {
+        iconElement.innerHTML = theme === 'dark' ? MOON_ICON : SUN_ICON;
+    }
+
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    button.title = `Theme: ${theme} — switch to ${nextTheme}`;
+    button.setAttribute('aria-label', `Theme: ${theme}`);
+    button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+}
+
+function handleThemeToggle() {
+    const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    setStoredTheme(nextTheme);
+    applyTheme(nextTheme);
+    updateThemeToggle(elements.themeToggle, nextTheme);
+}
+
+// Apply the theme as early as possible, and persist the first (time-based) pick
+// so the automatic choice only ever happens once. The toggle button already
+// exists at this point (this script runs after the header markup), so sync its
+// icon right away too.
+const initialTheme = getInitialTheme();
+setStoredTheme(initialTheme);
+applyTheme(initialTheme);
+updateThemeToggle(elements.themeToggle, initialTheme);
 
 // ===== Backend Communication =====
 // POST JSON to a backend endpoint and resolve with the parsed body when the
@@ -420,6 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.inputText.focus();
     updateInputWordCount();
     updateOutputWordCount();
+
+    // Theme toggle: reflect the current theme and handle manual switching
+    updateThemeToggle(elements.themeToggle, document.documentElement.getAttribute('data-theme') || 'light');
+    elements.themeToggle.addEventListener('click', handleThemeToggle);
 });
 
 // ===== Auto-save input text to sessionStorage =====

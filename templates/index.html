@@ -5,6 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Simplifier</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <script>
+        // Apply the theme before first paint to avoid a light-mode flash.
+        // First visit: pick by the clock (dark 6 PM - 6 AM); afterwards the
+        // user's stored choice wins. Keep the dark hours in sync with logic.js.
+        (function () {
+            var theme = null;
+            try {
+                var saved = localStorage.getItem('themeMode');
+                if (saved === 'light' || saved === 'dark') {
+                    theme = saved;
+                }
+            } catch (e) {}
+            if (!theme) {
+                var hour = new Date().getHours();
+                theme = (hour >= 18 || hour < 6) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -15,6 +34,14 @@
             </div>
             <div class="header-right">
                 <div id="modelBubble" class="model-bubble" role="status" aria-live="polite"></div>
+                <button id="themeToggle" class="btn btn-secondary icon-button theme-toggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+                    <span class="btn-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                            <circle cx="12" cy="12" r="5" />
+                            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                        </svg>
+                    </span>
+                </button>
                 <button id="modelBadgeBtn" class="model-badge" type="button" aria-expanded="false" aria-controls="configPanel">
                     <span class="model-label">Model:</span>
                     <span class="model-value" id="modelDisplay">Loading...</span>
