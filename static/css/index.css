@@ -113,6 +113,7 @@ body {
 }
 
 .model-value {
+    margin-bottom: -2px;
     font-weight: 600;
     color: #111111;
     font-family: 'Monaco', 'Courier New', monospace;
