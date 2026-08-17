@@ -73,7 +73,11 @@
             <!-- Left Panel: Input -->
             <div class="panel input-panel">
                 <div class="panel-header">
-                    <div class="panel-label">Original Text</div>
+                    <div class="panel-header-group">
+                        <div class="panel-label">Original Text</div>
+                        <span class="char-count" id="inputCharCount" aria-label="Input character count">0</span>
+                        <span class="char-count">words</span>
+                    </div>
                     <div class="panel-actions">
                         <button id="simplifyBtn" class="btn btn-secondary" type="button" title="Simplify text" aria-label="Simplify text">
                             <span class="btn-icon" aria-hidden="true">
@@ -83,6 +87,15 @@
                                 </svg>
                             </span>
                             <span class="btn-text">SIMPLIFY</span>
+                        </button>
+                        <button id="pasteBtn" class="btn btn-secondary icon-button" type="button" title="Paste from clipboard" aria-label="Paste from clipboard">
+                            <span class="btn-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                                    <rect x="6" y="5" width="12" height="16" rx="1.5" />
+                                    <path d="M9 5V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V5" />
+                                    <path d="M9 11h6M9 15h4" />
+                                </svg>
+                            </span>
                         </button>
                         <button id="clearBtn" class="btn btn-secondary icon-button" type="button" title="Clear all text" aria-label="Clear text">
                             <span class="btn-icon" aria-hidden="true">
@@ -103,7 +116,11 @@
             <!-- Right Panel: Output -->
             <div class="panel output-panel">
                 <div class="panel-header">
-                    <div class="panel-label">Simplified Result</div>
+                    <div class="panel-header-group">
+                        <div class="panel-label">Simplified Result</div>
+                        <span class="char-count" id="outputCharCount" aria-label="Output character count">0</span>
+                        <span class="char-count">words</span>
+                    </div>
                     <button id="copyBtn" class="btn btn-secondary icon-button" type="button" title="Copy simplified text to clipboard" aria-label="Copy simplified text">
                         <span class="btn-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
@@ -116,6 +133,10 @@
                 <div id="outputDisplay" class="output-display" data-empty="true">
                     <textarea id="outputText" class="text-area" readonly tabindex="-1" aria-label="Simplified result"></textarea>
                     <span class="placeholder-text">Your simplified text will appear here</span>
+                    <div class="loading-indicator" role="status" aria-live="polite">
+                        <span class="spinner" aria-hidden="true"></span>
+                        <span>Simplifying...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -123,7 +144,7 @@
         <!-- Footer -->
         <div class="footer">
             <span class="footer-text">A web application for simplifying long text using an AI completion API.</span>
-            <a class="footer-link" href="https://github.com/JaxonMa/text-simplifier" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            <a class="footer-link" href="https://github.com/JaxonMa/text-simplifier" target="_blank" rel="noopener noreferrer">View on <b>GitHub</b></a>
         </div>
     </div>
 

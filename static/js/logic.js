@@ -34,11 +34,14 @@ const elements = {
     configPanel: document.getElementById('configPanel'),
     confirmBtn: document.getElementById('confirmBtn'),
     simplifyBtn: document.getElementById('simplifyBtn'),
+    pasteBtn: document.getElementById('pasteBtn'),
     copyBtn: document.getElementById('copyBtn'),
     clearBtn: document.getElementById('clearBtn'),
     configModel: document.getElementById('configModel'),
     configBaseUrl: document.getElementById('configBaseUrl'),
-    configApiKey: document.getElementById('configApiKey')
+    configApiKey: document.getElementById('configApiKey'),
+    inputCharCount: document.getElementById('inputCharCount'),
+    outputCharCount: document.getElementById('outputCharCount')
 };
 
 // ===== Backend Communication =====
@@ -134,6 +137,8 @@ function isConfigDirty() {
 }
 
 // Validate with the backend, then persist the config locally on success.
+// Returns true when a simplification request is already in flight, in which
+// case the change only takes effect from the next simplification onward.
 async function saveConfig() {
     const config = readConfigInputs();
 
@@ -149,6 +154,16 @@ async function saveConfig() {
     }
 
     updateModelBadge();
+
+    return state.isProcessing;
+}
+
+// Bubble feedback after a config save. When a request is in flight, tell the
+// user the new config applies from the next simplification on.
+function showConfigSaveFeedback(pending) {
+    showBubble(elements.modelBubble, pending
+        ? 'Changes will take effect on the next simplification'
+        : 'Changes saved');
 }
 
 function discardConfigChanges() {
@@ -160,9 +175,9 @@ async function toggleModelMenu() {
         if (isConfigDirty()) {
             if (confirm('Save changes to model configuration?')) {
                 try {
-                    await saveConfig();
+                    const pending = await saveConfig();
                     closeModelMenu(elements.configPanel, elements.modelBadgeBtn);
-                    showBubble(elements.modelBubble, 'Changes saved');
+                    showConfigSaveFeedback(pending);
                 } catch (error) {
                     console.error('Failed to save config:', error);
                     // Keep the panel open so the user can fix the configuration
@@ -184,8 +199,8 @@ async function toggleModelMenu() {
 async function confirmChanges() {
     if (isConfigDirty()) {
         try {
-            await saveConfig();
-            showBubble(elements.modelBubble, 'Changes saved');
+            const pending = await saveConfig();
+            showConfigSaveFeedback(pending);
         } catch (error) {
             console.error('Failed to save config:', error);
             // Keep the panel open so the user can fix the configuration
@@ -213,7 +228,8 @@ async function simplifyText() {
     }
 
     state.isProcessing = true;
-    elements.simplifyBtn.disabled = true;
+    setBusyButtons(true);
+    setLoadingUI(true);
 
     try {
         // The original text travels in the URL path, per the backend route
@@ -228,8 +244,28 @@ async function simplifyText() {
         alert(`Error: ${error.message}`);
         displayResult(`Error: ${error.message}`);
     } finally {
+        setLoadingUI(false);
+        setBusyButtons(false);
         state.isProcessing = false;
-        elements.simplifyBtn.disabled = false;
+    }
+}
+
+// ===== Loading State =====
+// Disable the action buttons while a simplification request is in flight
+function setBusyButtons(disabled) {
+    [elements.simplifyBtn, elements.pasteBtn, elements.clearBtn].forEach((btn) => {
+        btn.disabled = disabled;
+    });
+}
+
+// Swap the simplify button icon for a spinner and show the "Simplifying..."
+// loading indicator in the output panel (which is cleared meanwhile)
+function setLoadingUI(isLoading) {
+    elements.simplifyBtn.classList.toggle('loading', isLoading);
+    elements.outputDisplay.classList.toggle('loading', isLoading);
+
+    if (isLoading) {
+        displayResult('');
     }
 }
 
@@ -243,9 +279,70 @@ function displayResult(text) {
         elements.outputDisplay.setAttribute('data-empty', 'true');
         elements.copyBtn.disabled = true;
     }
+
+    updateOutputCharCount();
+}
+
+// ===== Character Counts =====
+function updateInputCharCount() {
+    elements.inputCharCount.textContent = elements.inputText.value.length;
+}
+
+function updateOutputCharCount() {
+    elements.outputCharCount.textContent = elements.outputText.value.length;
 }
 
 // ===== Button Actions =====
+async function pasteFromClipboard() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+        alert('Clipboard API is not available in this context.');
+        return;
+    }
+
+    let text;
+    try {
+        text = await navigator.clipboard.readText();
+    } catch (error) {
+        console.error('Failed to read clipboard:', error);
+        alert(`Failed to read clipboard: ${error.message || 'unknown error'}`);
+        return;
+    }
+
+    if (!text) {
+        return;
+    }
+
+    const input = elements.inputText;
+    let start;
+    let end;
+    if (document.activeElement === input) {
+        // Insert at the current cursor/selection position
+        start = input.selectionStart;
+        end = input.selectionEnd;
+    } else {
+        // Otherwise append to the end of the input
+        start = end = input.value.length;
+    }
+
+    input.value = input.value.slice(0, start) + text + input.value.slice(end);
+
+    // Put the cursor right after the pasted text
+    input.focus();
+    const cursor = start + text.length;
+    input.setSelectionRange(cursor, cursor);
+
+    // Programmatic value changes do not fire the input event, so keep the
+    // debounced sessionStorage autosave in sync immediately.
+    try {
+        sessionStorage.setItem('inputText', input.value);
+    } catch (e) {
+        console.warn('Failed to save input:', e);
+    }
+
+    updateInputCharCount();
+    showButtonSuccess(elements.pasteBtn);
+}
+
 function copyToClipboard() {
     const text = elements.outputText.value;
 
@@ -268,16 +365,22 @@ function clearAll() {
         elements.inputText.value = '';
         displayResult('');
         elements.inputText.focus();
+        updateInputCharCount();
         showButtonSuccess(elements.clearBtn);
     }
 }
 
 // ===== Event Listeners =====
 elements.simplifyBtn.addEventListener('click', simplifyText);
+elements.pasteBtn.addEventListener('click', pasteFromClipboard);
 elements.copyBtn.addEventListener('click', copyToClipboard);
 elements.clearBtn.addEventListener('click', clearAll);
 elements.modelBadgeBtn.addEventListener('click', toggleModelMenu);
 elements.confirmBtn.addEventListener('click', confirmChanges);
+
+// Keep focus in the input textarea when the paste button is clicked, so the
+// pasted text lands at the current cursor position instead of appending.
+elements.pasteBtn.addEventListener('mousedown', (e) => e.preventDefault());
 
 // Allow simplify on Ctrl+Enter
 document.addEventListener('keydown', (e) => {
@@ -293,11 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     elements.copyBtn.disabled = true; // Copy is disabled until there's output
     elements.inputText.focus();
+    updateInputCharCount();
+    updateOutputCharCount();
 });
 
 // ===== Auto-save input text to sessionStorage =====
 let inputTimeout;
 elements.inputText.addEventListener('input', () => {
+    updateInputCharCount();
     clearTimeout(inputTimeout);
     inputTimeout = setTimeout(() => {
         try {
@@ -318,4 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
         console.warn('Failed to restore input:', e);
     }
+
+    updateInputCharCount();
 });
