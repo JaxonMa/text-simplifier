@@ -13,11 +13,15 @@ A web application for simplifying long text using an AI completion API.
 
 1. Install dependencies:
 
+> If you are running the GUI version, you can remove `flask` from the command below.
+
 ```bash
 python -m pip install flask openai python-dotenv
 ```
 
 2. Create a `.env` file in the project root and set your API values like this:
+
+> If you are running the Web app version, you can skip this step.
 
 ```env
 BASE_URL=https://api.openai.com/v1
@@ -27,10 +31,6 @@ MODEL=gpt-4o-mini
 
 3. Optionally edit `prompt.md` to change the simplification instruction.
 
-## Run GUI App
-```bash
-python window.py
-```
 
 ## Run the Web App
 
@@ -47,6 +47,12 @@ The interface includes:
 - Output field displaying the simplified text
 - `Copy` button to copy the simplified result to the clipboard
 - `Clear` button to reset both input and output fields
+
+
+## Run GUI App
+```bash
+python window.py
+```
 
 ## Project files
 
