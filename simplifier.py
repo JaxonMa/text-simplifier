@@ -15,8 +15,7 @@ import os
 
 
 def get_env_settings() -> dict:
-    """
-    Loads environment variables from a .env file.
+    """Loads environment variables from a .env file.
 
     Returns:
         dict: A dictionary containing the environment variables, including base_url, api_key, model, and is_loop_enabled.
@@ -36,8 +35,7 @@ def get_env_settings() -> dict:
 
 
 def get_prompt() -> str:
-    """
-    Retrieves the prompt for text simplification from a file.
+    """Retrieves the prompt for text simplification from a file.
     
     Returns:
         str: The prompt for text simplification.
@@ -50,8 +48,7 @@ def get_prompt() -> str:
 
 
 def simplify(client: OpenAI, model: str, text: str) -> str | None:
-    """
-    Simplifies the given text using the OpenAI API.
+    """Simplifies the given text using the OpenAI API.
 
     Args:
         client (OpenAI): The OpenAI client.
