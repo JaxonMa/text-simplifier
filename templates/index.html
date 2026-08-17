@@ -28,41 +28,43 @@
         </header>
 
         <!-- Model Configuration Panel -->
-        <div class="config-panel" id="configPanel" hidden>
-            <div class="config-title">Model Configuration</div>
-            <div class="config-grid">
-                <div class="config-item">
-                    <label for="configBaseUrl">Base URL</label>
-                    <input 
-                        type="text" 
-                        id="configBaseUrl" 
-                        class="config-input" 
-                        placeholder="e.g., https://api.openai.com/v1"
-                    >
+        <div class="config-panel" id="configPanel">
+            <div class="config-panel-inner">
+                <div class="config-title">Model Configuration</div>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="configBaseUrl">Base URL</label>
+                        <input 
+                            type="text" 
+                            id="configBaseUrl" 
+                            class="config-input" 
+                            placeholder="e.g., https://api.openai.com/v1"
+                        >
+                    </div>
+                    <div class="config-item">
+                        <label for="configModel">Model</label>
+                        <input 
+                            type="text" 
+                            id="configModel" 
+                            class="config-input" 
+                            placeholder="e.g., gpt-4o-mini"
+                        >
+                    </div>
+                    <div class="config-item">
+                        <label for="configApiKey">API Key</label>
+                        <input 
+                            type="password" 
+                            id="configApiKey" 
+                            class="config-input" 
+                            placeholder="Your API key"
+                        >
+                    </div>
                 </div>
-                <div class="config-item">
-                    <label for="configModel">Model</label>
-                    <input 
-                        type="text" 
-                        id="configModel" 
-                        class="config-input" 
-                        placeholder="e.g., gpt-4o-mini"
-                    >
+                <div class="config-actions">
+                    <button id="confirmBtn" class="btn btn-primary" type="button">
+                        <span class="btn-text">Confirm</span>
+                    </button>
                 </div>
-                <div class="config-item">
-                    <label for="configApiKey">API Key</label>
-                    <input 
-                        type="password" 
-                        id="configApiKey" 
-                        class="config-input" 
-                        placeholder="Your API key"
-                    >
-                </div>
-            </div>
-            <div class="config-actions">
-                <button id="confirmBtn" class="btn btn-primary" type="button">
-                    <span class="btn-text">Confirm</span>
-                </button>
             </div>
         </div>
 
@@ -72,18 +74,29 @@
             <div class="panel input-panel">
                 <div class="panel-header">
                     <div class="panel-label">Original Text</div>
-                    <button id="clearBtn" class="btn btn-secondary icon-button" type="button" title="Clear all text" aria-label="Clear text">
-                        <span class="btn-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
-                                <path d="M4 7h16M9 7V4h6v3M7 7l1 12h8l1-12" />
-                            </svg>
-                        </span>
-                    </button>
+                    <div class="panel-actions">
+                        <button id="simplifyBtn" class="btn btn-secondary" type="button" title="Simplify text" aria-label="Simplify text">
+                            <span class="btn-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                                    <path d="M12 4l1.7 4.3L18 10l-4.3 1.7L12 16l-1.7-4.3L6 10l4.3-1.7L12 4z" />
+                                    <path d="M18.5 14.4l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z" />
+                                </svg>
+                            </span>
+                            <span class="btn-text">SIMPLIFY</span>
+                        </button>
+                        <button id="clearBtn" class="btn btn-secondary icon-button" type="button" title="Clear all text" aria-label="Clear text">
+                            <span class="btn-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+                                    <path d="M4 7h16M9 7V4h6v3M7 7l1 12h8l1-12" />
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
                 </div>
                 <textarea 
                     id="inputText" 
                     class="text-area" 
-                    placeholder="Paste or enter your long text here..."
+                    placeholder="Paste or enter your text here..."
                 ></textarea>
             </div>
 
@@ -106,13 +119,10 @@
             </div>
         </div>
 
-        <!-- Action Bar -->
-        <div class="action-bar">
-            <div class="actions-left">
-                <button id="simplifyBtn" class="btn btn-primary" type="button">
-                    <span class="btn-text">Simplify</span>
-                </button>
-            </div>
+        <!-- Footer -->
+        <div class="footer">
+            <span class="footer-text">A web application for simplifying long text using an AI completion API.</span>
+            <a class="footer-link" href="https://github.com/JaxonMa/text-simplifier" target="_blank" rel="noopener noreferrer">View on GitHub</a>
         </div>
     </div>
 
