@@ -40,8 +40,8 @@ const elements = {
     configModel: document.getElementById('configModel'),
     configBaseUrl: document.getElementById('configBaseUrl'),
     configApiKey: document.getElementById('configApiKey'),
-    inputCharCount: document.getElementById('inputCharCount'),
-    outputCharCount: document.getElementById('outputCharCount')
+    inputWordCount: document.getElementById('inputWordCount'),
+    outputWordCount: document.getElementById('outputWordCount')
 };
 
 // ===== Backend Communication =====
@@ -280,16 +280,38 @@ function displayResult(text) {
         elements.copyBtn.disabled = true;
     }
 
-    updateOutputCharCount();
+    updateOutputWordCount();
 }
 
-// ===== Character Counts =====
-function updateInputCharCount() {
-    elements.inputCharCount.textContent = elements.inputText.value.length;
+// ===== Word Counts =====
+// Count words in mixed-script text (Latin, CJK, Thai, ...). The native
+// Intl.Segmenter segments scripts without word separators (Chinese, Japanese,
+// Thai, ...) into proper words; the fallback counts whitespace-delimited
+// tokens and treats every CJK character as one token.
+function countWords(text) {
+    if (!text.trim()) return 0;
+
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        const segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+        let count = 0;
+        for (const segment of segmenter.segment(text)) {
+            if (segment.isWordLike) count += 1;
+        }
+        return count;
+    }
+
+    // Fallback for older browsers: whitespace-separated tokens, with every
+    // Han/Hiragana/Katakana/Hangul character counted as its own token.
+    const tokens = text.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]|[^\s]+/gu) || [];
+    return tokens.length;
 }
 
-function updateOutputCharCount() {
-    elements.outputCharCount.textContent = elements.outputText.value.length;
+function updateInputWordCount() {
+    elements.inputWordCount.textContent = countWords(elements.inputText.value);
+}
+
+function updateOutputWordCount() {
+    elements.outputWordCount.textContent = countWords(elements.outputText.value);
 }
 
 // ===== Button Actions =====
@@ -339,7 +361,7 @@ async function pasteFromClipboard() {
         console.warn('Failed to save input:', e);
     }
 
-    updateInputCharCount();
+    updateInputWordCount();
     showButtonSuccess(elements.pasteBtn);
 }
 
@@ -365,7 +387,7 @@ function clearAll() {
         elements.inputText.value = '';
         displayResult('');
         elements.inputText.focus();
-        updateInputCharCount();
+        updateInputWordCount();
         showButtonSuccess(elements.clearBtn);
     }
 }
@@ -396,14 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     elements.copyBtn.disabled = true; // Copy is disabled until there's output
     elements.inputText.focus();
-    updateInputCharCount();
-    updateOutputCharCount();
+    updateInputWordCount();
+    updateOutputWordCount();
 });
 
 // ===== Auto-save input text to sessionStorage =====
 let inputTimeout;
 elements.inputText.addEventListener('input', () => {
-    updateInputCharCount();
+    updateInputWordCount();
     clearTimeout(inputTimeout);
     inputTimeout = setTimeout(() => {
         try {
@@ -425,5 +447,5 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Failed to restore input:', e);
     }
 
-    updateInputCharCount();
+    updateInputWordCount();
 });
