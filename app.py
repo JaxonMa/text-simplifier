@@ -37,10 +37,10 @@ def create_client():
     global CLIENT
     model_config = request.get_json()
 
-    if MODEL_CONFIG.keys != model_config.keys():
+    if MODEL_CONFIG.keys() != model_config.keys():
         return generate_reply("error", "inform", "Request does not contain valid model configuration.", 400)
-    elif MODEL_CONFIG.values == model_config.values():
-        return generate_reply("success", "inform", "Clinet already created.", 200)
+    elif list(MODEL_CONFIG.values()) == list(model_config.values()):
+        return generate_reply("success", "inform", "Client already created.", 200)
     else:
         MODEL_CONFIG.update(model_config)
 
@@ -49,7 +49,7 @@ def create_client():
     return generate_reply("success", "inform", "Model configuration submitted successfully.", 200)
 
 
-@app.post("/api/simplify-text/<str:original_text>")
+@app.post("/api/simplify-text/<string:original_text>")
 def simplify_text(original_text: str) -> tuple[Response, int]:
     """Simplify text given 
     
