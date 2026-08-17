@@ -79,14 +79,15 @@ body {
 
 .model-bubble {
     position: absolute;
-    right: calc(100% + 8px);
-    top: 50%;
-    transform: translateY(-50%);
+    right: 0;
+    top: calc(100% + 6px);
+    transform: none;
     background-color: #111111;
     color: #ffffff;
     padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 12px;
+    border-radius: 0;
+    font-size: 13px;
+    letter-spacing: 0.5px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
@@ -97,11 +98,10 @@ body {
 .model-bubble::after {
     content: '';
     position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 16px;
+    top: -12px;
     border: 6px solid transparent;
-    border-left-color: #111111;
+    border-bottom-color: #111111;
 }
 
 .model-bubble.visible {
@@ -572,20 +572,6 @@ body {
         justify-content: space-between;
     }
 
-    .model-bubble {
-        right: auto;
-        left: 0;
-        top: calc(100% + 6px);
-        transform: none;
-    }
-
-    .model-bubble::after {
-        left: 12px;
-        top: -12px;
-        border: 6px solid transparent;
-        border-bottom-color: #111111;
-    }
-
     .footer {
         padding: 8px 16px;
         gap: 8px;
@@ -694,13 +680,7 @@ body {
 }
 
 [data-theme="dark"] .model-bubble::after {
-    border-left-color: #e8e8ea;
-}
-
-@media (max-width: 1024px) {
-    [data-theme="dark"] .model-bubble::after {
-        border-bottom-color: #e8e8ea;
-    }
+    border-bottom-color: #e8e8ea;
 }
 
 [data-theme="dark"] .model-label {
