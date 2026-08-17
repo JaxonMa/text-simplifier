@@ -30,7 +30,6 @@ class MainWindow(tk.Tk):
         self._build_client()
         self._create_widgets()
         self._layout_widgets()
-        self.protocol("WM_DELETE_WINDOW", self.destroy)
 
     def _build_client(self):
         env_settings = get_env_settings()
