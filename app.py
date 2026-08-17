@@ -45,7 +45,6 @@ def create_client():
         MODEL_CONFIG.update(model_config)
 
     CLIENT = OpenAI(api_key=MODEL_CONFIG["api_key"], base_url=MODEL_CONFIG["base_url"])
-
     return generate_respond("success", "inform", "Model configuration submitted successfully.", 200)
 
 
