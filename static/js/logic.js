@@ -27,6 +27,7 @@ const state = {
 const elements = {
     inputText: document.getElementById('inputText'),
     outputText: document.getElementById('outputText'),
+    outputDisplay: document.getElementById('outputDisplay'),
     modelDisplay: document.getElementById('modelDisplay'),
     modelBadgeBtn: document.getElementById('modelBadgeBtn'),
     modelBubble: document.getElementById('modelBubble'),
@@ -234,21 +235,21 @@ async function simplifyText() {
 
 function displayResult(text) {
     if (text) {
-        elements.outputText.textContent = text;
-        elements.outputText.setAttribute('data-empty', 'false');
+        elements.outputText.value = text;
+        elements.outputDisplay.setAttribute('data-empty', 'false');
         elements.copyBtn.disabled = false;
     } else {
-        elements.outputText.innerHTML = '<span class="placeholder-text">Your simplified text will appear here</span>';
-        elements.outputText.setAttribute('data-empty', 'true');
+        elements.outputText.value = '';
+        elements.outputDisplay.setAttribute('data-empty', 'true');
         elements.copyBtn.disabled = true;
     }
 }
 
 // ===== Button Actions =====
 function copyToClipboard() {
-    const text = elements.outputText.textContent;
+    const text = elements.outputText.value;
 
-    if (!text || elements.outputText.getAttribute('data-empty') === 'true') {
+    if (!text) {
         return;
     }
 
