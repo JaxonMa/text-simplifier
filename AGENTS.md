@@ -12,7 +12,7 @@ Text simplifier: Flask web app + tkinter GUI, both calling an OpenAI-compatible 
 ## Architecture / gotchas
 
 - `simplifier.py` is the single API layer (`get_env_settings`, `get_prompt`, `simplify`); both frontends use it.
-- The web app is incomplete: `static/js/index.js` POSTs JSON `{text, model, baseUrl, apiKey}` to `/api/simplify` and expects `{"simplified": ...}` or `{"result": ...}`, but `app.py` only defines `GET /` — the endpoint does not exist. Any web work starts here.
+- The web frontend is split into `static/js/animations.js` (animations/visual feedback) and `static/js/logic.js` (state, config, backend calls). It talks to `POST /api/submit-model-config` (JSON `{base_url, model, api_key}`) and `POST /api/simplify-text/<original_text>`; both reply `{"status", "type", "message"}`.
 - Web config (incl. API key) lives in browser `localStorage`; input text autosaves to `sessionStorage`.
 - `simplifier.py` `main()` reads `sample_text.txt`, but the repo file is `sample.txt` (CLI path is broken).
 - `prompt.md` is the full system prompt sent to the model; edit it to change behavior.

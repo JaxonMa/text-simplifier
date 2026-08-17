@@ -55,7 +55,8 @@ The interface includes:
 - `simplifier.py` — API client and simplification logic
 - `templates/index.html` — web interface
 - `static/css/index.css` — styling
-- `static/js/index.js` — frontend functionality
+- `static/js/animations.js` — frontend animations & visual feedback
+- `static/js/logic.js` — frontend business logic & backend communication
 - `prompt.md` — prompt template used during simplification
 - `sample.txt` — example text for testing
 
