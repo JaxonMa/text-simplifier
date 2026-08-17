@@ -1,3 +1,16 @@
+// logic.js — business logic and backend communication
+// -----------------------------------------------------------------------------
+// This file owns all application logic: state, model configuration handling,
+// talking to the Flask backend, simplification, clipboard/copy actions, event
+// wiring and initialization. All visual feedback it needs (bubbles, panel
+// height animation, button success animation) is delegated to animations.js.
+//
+// Backend contract (see app.py):
+//   POST /api/submit-model-config        body: {base_url, model, api_key}
+//   POST /api/simplify-text/<original_text>
+//   Both reply with JSON {status, type, message}.
+// -----------------------------------------------------------------------------
+
 // ===== State Management =====
 const state = {
     config: {
@@ -5,7 +18,9 @@ const state = {
         model: '',
         apiKey: ''
     },
-    isProcessing: false
+    isProcessing: false,
+    // Whether the backend has created a client for the current config
+    isConfigured: false
 };
 
 // ===== DOM Elements =====
@@ -25,9 +40,44 @@ const elements = {
     configApiKey: document.getElementById('configApiKey')
 };
 
-// ===== Configuration Management =====
-let bubbleTimer;
+// ===== Backend Communication =====
+// POST JSON to a backend endpoint and resolve with the parsed body when the
+// request succeeds; throw an Error carrying the backend's message otherwise.
+async function postJson(url, body) {
+    const options = { method: 'POST' };
+    if (body !== undefined) {
+        options.headers = { 'Content-Type': 'application/json' };
+        options.body = JSON.stringify(body);
+    }
 
+    const response = await fetch(url, options);
+
+    let data = null;
+    try {
+        data = await response.json();
+    } catch (e) {
+        data = null;
+    }
+
+    if (!response.ok || !data || data.status !== 'success') {
+        const message = (data && data.message) || `API error: ${response.statusText}`;
+        throw new Error(message);
+    }
+
+    return data;
+}
+
+// Submit the model config to the backend, which creates the model client there.
+async function submitConfig(config) {
+    const data = await postJson('/api/submit-model-config', {
+        base_url: config.baseUrl,
+        model: config.model,
+        api_key: config.apiKey
+    });
+    return data.message;
+}
+
+// ===== Configuration Management =====
 async function loadConfig() {
     try {
         // Try to load from localStorage first
@@ -42,6 +92,19 @@ async function loadConfig() {
 
     syncConfigInputs();
     updateModelBadge();
+
+    // Best effort: re-register the saved config with the backend so that
+    // simplifying still works right after a page refresh. The client is
+    // created server-side, so a refresh or a backend restart loses it.
+    if (state.config.apiKey) {
+        try {
+            await submitConfig(state.config);
+            state.isConfigured = true;
+        } catch (e) {
+            state.isConfigured = false;
+            console.warn('Failed to re-submit saved config:', e);
+        }
+    }
 }
 
 function syncConfigInputs() {
@@ -69,8 +132,14 @@ function isConfigDirty() {
         inputs.apiKey !== state.config.apiKey;
 }
 
-function saveConfig() {
-    state.config = readConfigInputs();
+// Validate with the backend, then persist the config locally on success.
+async function saveConfig() {
+    const config = readConfigInputs();
+
+    await submitConfig(config);
+
+    state.config = config;
+    state.isConfigured = true;
 
     try {
         localStorage.setItem('simplifierConfig', JSON.stringify(state.config));
@@ -85,74 +154,51 @@ function discardConfigChanges() {
     syncConfigInputs();
 }
 
-function openModelMenu() {
-    const panel = elements.configPanel;
-
-    panel.classList.add('open');
-    elements.modelBadgeBtn.classList.add('open');
-    elements.modelBadgeBtn.setAttribute('aria-expanded', 'true');
-
-    // Measure the natural height, then animate from 0 up to it
-    panel.style.height = 'auto';
-    const targetHeight = panel.offsetHeight;
-    panel.style.height = '0px';
-    void panel.offsetHeight; // force reflow so the transition starts from 0
-    panel.style.height = targetHeight + 'px';
-}
-
-function closeModelMenu() {
-    const panel = elements.configPanel;
-
-    // Start collapsing from the current height (works mid-animation too)
-    panel.style.height = panel.getBoundingClientRect().height + 'px';
-    void panel.offsetHeight; // force reflow so the transition starts from here
-
-    panel.classList.remove('open');
-    elements.modelBadgeBtn.classList.remove('open');
-    elements.modelBadgeBtn.setAttribute('aria-expanded', 'false');
-
-    panel.style.height = '0px';
-}
-
-function toggleModelMenu() {
+async function toggleModelMenu() {
     if (elements.configPanel.classList.contains('open')) {
         if (isConfigDirty()) {
             if (confirm('Save changes to model configuration?')) {
-                saveConfig();
-                closeModelMenu();
-                showBubble('Changes saved');
+                try {
+                    await saveConfig();
+                    closeModelMenu(elements.configPanel, elements.modelBadgeBtn);
+                    showBubble(elements.modelBubble, 'Changes saved');
+                } catch (error) {
+                    console.error('Failed to save config:', error);
+                    // Keep the panel open so the user can fix the configuration
+                    showBubble(elements.modelBubble, error.message || 'Failed to save changes');
+                }
             } else {
                 discardConfigChanges();
-                closeModelMenu();
-                showBubble('Changes discarded');
+                closeModelMenu(elements.configPanel, elements.modelBadgeBtn);
+                showBubble(elements.modelBubble, 'Changes discarded');
             }
         } else {
-            closeModelMenu();
+            closeModelMenu(elements.configPanel, elements.modelBadgeBtn);
         }
     } else {
-        openModelMenu();
+        openModelMenu(elements.configPanel, elements.modelBadgeBtn);
     }
 }
 
-function confirmChanges() {
+async function confirmChanges() {
     if (isConfigDirty()) {
-        saveConfig();
-        showBubble('Changes saved');
+        try {
+            await saveConfig();
+            showBubble(elements.modelBubble, 'Changes saved');
+        } catch (error) {
+            console.error('Failed to save config:', error);
+            // Keep the panel open so the user can fix the configuration
+            showBubble(elements.modelBubble, error.message || 'Failed to save changes');
+            return;
+        }
     }
-    closeModelMenu();
-}
-
-function showBubble(message) {
-    clearTimeout(bubbleTimer);
-    elements.modelBubble.textContent = message;
-    elements.modelBubble.classList.add('visible');
-    bubbleTimer = setTimeout(() => {
-        elements.modelBubble.classList.remove('visible');
-    }, 2500);
+    closeModelMenu(elements.configPanel, elements.modelBadgeBtn);
 }
 
 // ===== Simplification Logic =====
 async function simplifyText() {
+    if (state.isProcessing) return;
+
     const text = elements.inputText.value.trim();
 
     if (!text) {
@@ -160,8 +206,8 @@ async function simplifyText() {
         return;
     }
 
-    if (!state.config.apiKey) {
-        alert('Please configure your API key first.');
+    if (!state.isConfigured) {
+        alert('Please configure your model first.');
         return;
     }
 
@@ -169,31 +215,12 @@ async function simplifyText() {
     elements.simplifyBtn.disabled = true;
 
     try {
-        // Send request to backend API
-        const response = await fetch('/api/simplify', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                text: text,
-                model: state.config.model,
-                baseUrl: state.config.baseUrl,
-                apiKey: state.config.apiKey
-            })
-        });
+        // The original text travels in the URL path, per the backend route
+        // POST /api/simplify-text/<string:original_text>; the reply carries
+        // the simplified text in the "message" field.
+        const data = await postJson(`/api/simplify-text/${encodeURIComponent(text)}`);
 
-        if (!response.ok) {
-            throw new Error(`API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const simplifiedText = data.simplified || data.result || '';
-
-        // Display result
-        displayResult(simplifiedText);
-
-        // Show success animation
+        displayResult(data.message);
         showButtonSuccess(elements.simplifyBtn);
     } catch (error) {
         console.error('Error during simplification:', error);
@@ -244,58 +271,12 @@ function clearAll() {
     }
 }
 
-// ===== Success Animation =====
-function showButtonSuccess(button) {
-    if (!button) return;
-
-    const iconElement = button.querySelector('.btn-icon');
-    const textElement = button.querySelector('.btn-text');
-    const originalIconMarkup = iconElement ? iconElement.innerHTML : null;
-
-    const checkmark = document.createElement('span');
-    checkmark.className = 'checkmark';
-    checkmark.textContent = '✓';
-
-    button.classList.add('btn-success');
-
-    if (iconElement) {
-        // Icon buttons swap the icon for a checkmark; any accompanying text is left untouched.
-        button.classList.add('icon-only');
-        iconElement.innerHTML = '';
-        iconElement.appendChild(checkmark);
-    } else if (textElement) {
-        button.insertBefore(checkmark, textElement);
-    }
-
-    setTimeout(() => {
-        button.classList.remove('btn-success', 'icon-only');
-
-        const checkmarkEl = button.querySelector('.checkmark');
-        if (checkmarkEl) {
-            checkmarkEl.remove();
-        }
-
-        if (iconElement && originalIconMarkup) {
-            iconElement.innerHTML = originalIconMarkup;
-        }
-    }, 1200);
-}
-
 // ===== Event Listeners =====
 elements.simplifyBtn.addEventListener('click', simplifyText);
 elements.copyBtn.addEventListener('click', copyToClipboard);
 elements.clearBtn.addEventListener('click', clearAll);
 elements.modelBadgeBtn.addEventListener('click', toggleModelMenu);
 elements.confirmBtn.addEventListener('click', confirmChanges);
-
-// Release the fixed height once the open animation finishes so the panel
-// stays responsive to window resizes
-elements.configPanel.addEventListener('transitionend', (e) => {
-    if (e.target !== elements.configPanel || e.propertyName !== 'height') return;
-    if (elements.configPanel.classList.contains('open')) {
-        elements.configPanel.style.height = 'auto';
-    }
-});
 
 // Allow simplify on Ctrl+Enter
 document.addEventListener('keydown', (e) => {
