@@ -18,19 +18,17 @@ def get_env_settings() -> dict:
     """Loads environment variables from a .env file.
 
     Returns:
-        dict: A dictionary containing the environment variables, including base_url, api_key, model, and is_loop_enabled.
+        dict: A dictionary containing the environment variables, including base_url, api_key, and model.
     """
     load_dotenv()
     base_url = os.getenv("BASE_URL", "URL_TO_API")
     api_key = os.getenv("API_KEY", "YOUR_API_KEY")
     model = os.getenv("MODEL", "MODEL_NAME")
-    loop = os.getenv("LOOP", "True").lower() == "true"
 
     return {
         "base_url": base_url,
         "api_key": api_key,
-        "model": model,
-        "is_loop_enabled": loop
+        "model": model
     }
 
 
@@ -42,9 +40,6 @@ def get_prompt() -> str:
     """
     with open("prompt.md", "r") as file:
         return file.read()
-    return "Please simplify the following text while maintaining its original meaning and context. " \
-            + "Ensure that the simplified version is clear, concise, and easy to understand. " \
-            + "Use the language user's input is in, and avoid changing the tone or style of the text. "
 
 
 def simplify(client: OpenAI, model: str, text: str) -> str | None:
@@ -73,7 +68,7 @@ def simplify(client: OpenAI, model: str, text: str) -> str | None:
 
 
 def main():
-    with open("sample_text.txt", "r") as file:
+    with open("sample.txt", "r") as file:
         text = file.read()
     env_settings = get_env_settings()
     client = OpenAI(api_key=env_settings["api_key"], base_url=env_settings["base_url"])
@@ -82,7 +77,7 @@ def main():
     if simplified_text:
         print("Simplified Text:")
         print(simplified_text)
-        
+
 
 if __name__ == "__main__":
     main()

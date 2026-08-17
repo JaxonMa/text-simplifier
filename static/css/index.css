@@ -161,9 +161,9 @@ body {
     min-width: 0;
 }
 
-/* Character count sits right after the panel label; ~2/3 of the label's
+/* Word count sits right after the panel label; ~2/3 of the label's
    text height (12px label at 1.5 line-height => ~18px; count ~12px) */
-.char-count {
+.word-count {
     padding: 0 2px;
     font-size: 11px;
     line-height: 1.1;
@@ -343,10 +343,6 @@ body {
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
-}
-
-.icon-button .btn-text {
-    display: none;
 }
 
 .btn-text {
@@ -537,8 +533,6 @@ body {
 .config-input::placeholder {
     color: #999999;
 }
-
-
 
 /* ===== Responsive Design ===== */
 @media (max-width: 1024px) {
