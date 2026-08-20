@@ -4,7 +4,7 @@
 from enum import Enum
 
 from flask import Flask, Response, jsonify, render_template, request
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 
 from simplifier import simplify
 
@@ -38,7 +38,7 @@ def respond(
     Returns:
         tuple[Response, int]: The reply to the request initiator
     """
-    return jsonify({"status": status, "type": type_, "message": message}), code
+    return jsonify({"status": status.value, "type": type_.value, "message": message}), code
 
 
 def is_config_valid(config: dict[str, str]) -> bool:
@@ -59,11 +59,13 @@ def index():
 def create_client():
     """Creates model client according to model config submitted"""
     global CLIENT
-    config = request.get_json()
+    config = request.get_json(silent=True)
 
-    if is_config_valid(config):
-        MODEL_CONFIG.update(config)
-    else:
+    if (
+        not isinstance(config, dict)
+        or not is_config_valid(config)
+        or not all(config.values())
+    ):
         return respond(
             RespondStatus.ERROR,
             RespondType.INFORM,
@@ -71,7 +73,15 @@ def create_client():
             400,
         )  # The client is created if values of config is the same as those of MODEL_CONFIG
 
-    CLIENT = OpenAI(api_key=MODEL_CONFIG["api_key"], base_url=MODEL_CONFIG["base_url"])
+    MODEL_CONFIG.update(config)
+
+    try:
+        CLIENT = OpenAI(
+            api_key=MODEL_CONFIG["api_key"], base_url=MODEL_CONFIG["base_url"]
+        )
+    except OpenAIError as e:
+        return respond(RespondStatus.ERROR, RespondType.INFORM, str(e), 400)
+
     return respond(
         RespondStatus.SUCCESS,
         RespondType.INFORM,
