@@ -9,6 +9,8 @@
 //   POST /api/submit-model-config        body: {base_url, model, api_key}
 //   POST /api/simplify-text/<original_text>
 //   Both reply with JSON {status, type, message}.
+//   Note: submitting the config that is already active returns HTTP 400
+//   ("client already created"), not 200.
 // -----------------------------------------------------------------------------
 
 // ===== State Management =====
@@ -179,12 +181,17 @@ async function loadConfig() {
     // Best effort: re-register the saved config with the backend so that
     // simplifying still works right after a page refresh. The client is
     // created server-side, so a refresh or a backend restart loses it.
+    //
+    // Since the backend refactor, re-submitting the config that is already
+    // active returns 400 ("client already created"). Here that only happens
+    // when the server already holds this exact config (a backend restart
+    // resets it, making the re-submit succeed), so the client is set up.
     if (state.config.apiKey) {
         try {
             await submitConfig(state.config);
             state.isConfigured = true;
         } catch (e) {
-            state.isConfigured = false;
+            state.isConfigured = /already created/i.test(e.message);
             console.warn('Failed to re-submit saved config:', e);
         }
     }
