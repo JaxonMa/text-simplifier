@@ -9,9 +9,10 @@ Author: Jaxon Ma
 Date: 2026-07-10
 """
 
-from openai import OpenAI
-from dotenv import load_dotenv
 import os
+
+from dotenv import load_dotenv
+from openai import OpenAI
 
 
 def get_env_settings() -> dict:
@@ -25,21 +26,18 @@ def get_env_settings() -> dict:
     api_key = os.getenv("API_KEY", "YOUR_API_KEY")
     model = os.getenv("MODEL", "MODEL_NAME")
 
-    return {
-        "base_url": base_url,
-        "api_key": api_key,
-        "model": model
-    }
+    return {"base_url": base_url, "api_key": api_key, "model": model}
 
 
-def get_prompt() -> str:
+def get_prompt(prompt_path: str="prompt.md") -> str:
     """Retrieves the prompt for text simplification from a file.
-    
+
     Returns:
         str: The prompt for text simplification.
     """
-    with open("prompt.md", "r") as file:
+    with open(prompt_path, "r") as file:
         return file.read()
+    raise FileNotFoundError(f"Prompt not found in {prompt_path}.")
 
 
 def simplify(client: OpenAI, model: str, text: str) -> str | None:
@@ -58,8 +56,8 @@ def simplify(client: OpenAI, model: str, text: str) -> str | None:
             model=model,
             messages=[
                 {"role": "system", "content": get_prompt()},
-                {"role": "user", "content": text}
-            ]
+                {"role": "user", "content": text},
+            ],
         )
         return response.choices[0].message.content
     except Exception as e:
